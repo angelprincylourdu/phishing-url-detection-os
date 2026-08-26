@@ -1,0 +1,10 @@
+venv/
+__pycache__/
+*.pyc
+.env
+
+PhiUSIIL_Phishing_URL_Dataset.csv
+*.csv:Zone.Identifier
+
+phishing_model.pkl
+url_phishing_model.pkl

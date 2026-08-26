@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>PhishGuard | AI URL Security</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: Inter, Arial, sans-serif;
+            color: #f8fafc;
+            background:
+                radial-gradient(
+                    circle at 15% 15%,
+                    rgba(37, 99, 235, 0.20),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 85% 15%,
+                    rgba(124, 58, 237, 0.22),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 50% 100%,
+                    rgba(14, 165, 233, 0.12),
+                    transparent 35%
+                ),
+                #050816;
+            overflow-x: hidden;
+        }
+
+        /* Background glow */
+        .glow {
+            position: fixed;
+            width: 420px;
+            height: 420px;
+            border-radius: 50%;
+            background: rgba(59, 130, 246, 0.08);
+            filter: blur(100px);
+            pointer-events: none;
+        }
+
+        .glow.one {
+            top: 80px;
+            left: -180px;
+        }
+
+        .glow.two {
+            top: 250px;
+            right: -180px;
+            background: rgba(139, 92, 246, 0.09);
+        }
+
+        /* Navigation */
+        nav {
+            width: 100%;
+            max-width: 1180px;
+            margin: auto;
+            padding: 25px 25px;
+
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 11px;
+
+            font-size: 20px;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .logo-icon {
+            width: 40px;
+            height: 40px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 12px;
+
+            background: linear-gradient(
+                135deg,
+                #2563eb,
+                #7c3aed
+            );
+
+            box-shadow:
+                0 0 25px rgba(59,130,246,0.30);
+        }
+
+        .nav-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+
+            color: #94a3b8;
+            font-size: 13px;
+        }
+
+        .status-dot {
+            width: 7px;
+            height: 7px;
+            border-radius: 50%;
+            background: #22c55e;
+            box-shadow: 0 0 12px rgba(34,197,94,0.8);
+        }
+
+        /* Hero */
+        .hero {
+            max-width: 1100px;
+            margin: 65px auto 0;
+            padding: 0 25px;
+
+            text-align: center;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+
+            padding: 8px 14px;
+
+            border-radius: 30px;
+
+            background: rgba(30,41,59,0.55);
+            border: 1px solid rgba(148,163,184,0.14);
+
+            color: #a5b4fc;
+            font-size: 12px;
+            font-weight: 700;
+
+            letter-spacing: 1px;
+            text-transform: uppercase;
+
+            backdrop-filter: blur(12px);
+        }
+
+        .hero-icon {
+            width: 92px;
+            height: 92px;
+
+            margin: 25px auto 22px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            border-radius: 28px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #4f46e5,
+                    #7c3aed
+                );
+
+            box-shadow:
+                0 0 60px rgba(59,130,246,0.25),
+                0 20px 50px rgba(0,0,0,0.35),
+                inset 0 1px 1px rgba(255,255,255,0.25);
+
+            font-size: 47px;
+
+            animation: float 4s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-7px);
+            }
+        }
+
+        .hero h1 {
+            max-width: 850px;
+            margin: auto;
+
+            font-size: clamp(44px, 7vw, 76px);
+            line-height: 0.98;
+
+            letter-spacing: -4px;
+            font-weight: 850;
+        }
+
+        .gradient-text {
+            background: linear-gradient(
+                90deg,
+                #60a5fa,
+                #818cf8,
+                #c084fc
+            );
+
+            -webkit-background-clip: text;
+            background-clip: text;
+            color: transparent;
+        }
+
+        .hero-description {
+            max-width: 650px;
+            margin: 25px auto 0;
+
+            color: #94a3b8;
+
+            font-size: 17px;
+            line-height: 1.7;
+        }
+
+        /* Scanner */
+        .scanner {
+            max-width: 820px;
+            margin: 45px auto 0;
+
+            padding: 9px;
+
+            border-radius: 20px;
+
+            background: rgba(15,23,42,0.70);
+
+            border: 1px solid rgba(148,163,184,0.17);
+
+            box-shadow:
+                0 30px 80px rgba(0,0,0,0.40),
+                0 0 50px rgba(37,99,235,0.08);
+
+            backdrop-filter: blur(20px);
+        }
+
+        .scanner-inner {
+            display: flex;
+            gap: 10px;
+
+            padding: 7px;
+
+            border-radius: 14px;
+
+            background: rgba(2,6,23,0.65);
+        }
+
+        .url-input {
+            flex: 1;
+
+            border: none;
+            outline: none;
+
+            background: transparent;
+
+            padding: 17px 16px;
+
+            color: #f8fafc;
+
+            font-size: 15px;
+        }
+
+        .url-input::placeholder {
+            color: #64748b;
+        }
+
+        .scan-button {
+            border: none;
+            cursor: pointer;
+
+            padding: 0 28px;
+
+            border-radius: 11px;
+
+            color: white;
+
+            font-size: 14px;
+            font-weight: 800;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #2563eb,
+                    #7c3aed
+                );
+
+            box-shadow:
+                0 8px 25px rgba(37,99,235,0.25);
+
+            transition: 0.25s ease;
+        }
+
+        .scan-button:hover {
+            transform: translateY(-2px);
+
+            box-shadow:
+                0 12px 35px rgba(99,102,241,0.35);
+        }
+
+        /* Trust */
+        .trust {
+            margin-top: 20px;
+
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            flex-wrap: wrap;
+
+            color: #64748b;
+
+            font-size: 12px;
+        }
+
+        .trust-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+        }
+
+        .check {
+            color: #4ade80;
+        }
+
+        /* Feature cards */
+        .features {
+            max-width: 1050px;
+            margin: 85px auto 70px;
+
+            padding: 0 25px;
+
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+        }
+
+        .feature-card {
+            padding: 25px;
+
+            text-align: left;
+
+            border-radius: 18px;
+
+            background: rgba(15,23,42,0.48);
+
+            border: 1px solid rgba(148,163,184,0.10);
+
+            transition: 0.25s ease;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+
+            border-color: rgba(96,165,250,0.25);
+
+            background: rgba(30,41,59,0.55);
+
+            box-shadow:
+                0 20px 45px rgba(0,0,0,0.22);
+        }
+
+        .feature-icon {
+            width: 45px;
+            height: 45px;
+
+            display: flex;
+            align-items: center;
+            justify-content: center;
+
+            margin-bottom: 18px;
+
+            border-radius: 13px;
+
+            background: rgba(59,130,246,0.10);
+
+            border: 1px solid rgba(96,165,250,0.16);
+
+            font-size: 21px;
+        }
+
+        .feature-card h3 {
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+
+        .feature-card p {
+            color: #64748b;
+
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            padding: 25px;
+
+            text-align: center;
+
+            color: #475569;
+
+            font-size: 12px;
+
+            border-top: 1px solid rgba(148,163,184,0.07);
+        }
+
+        /* Mobile */
+        @media (max-width: 700px) {
+
+            nav {
+                padding: 18px;
+            }
+
+            .nav-status {
+                display: none;
+            }
+
+            .hero {
+                margin-top: 45px;
+            }
+
+            .hero h1 {
+                letter-spacing: -2px;
+            }
+
+            .hero-description {
+                font-size: 15px;
+            }
+
+            .scanner-inner {
+                flex-direction: column;
+            }
+
+            .url-input {
+                min-height: 55px;
+            }
+
+            .scan-button {
+                min-height: 52px;
+            }
+
+            .features {
+                grid-template-columns: 1fr;
+                margin-top: 55px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="glow one"></div>
+<div class="glow two"></div>
+
+
+<!-- Navigation -->
+<nav>
+
+    <div class="logo">
+
+        <div class="logo-icon">
+            🛡️
+        </div>
+
+        PhishGuard
+
+    </div>
+
+    <div class="nav-status">
+        <span class="status-dot"></span>
+        Security engine online
+    </div>
+
+</nav>
+
+
+<!-- Hero -->
+<section class="hero">
+
+    <div class="eyebrow">
+        ✦ Machine Learning Security
+    </div>
+
+    <div class="hero-icon">
+        🛡️
+    </div>
+
+    <h1>
+        Know what you're
+        <span class="gradient-text">
+            clicking.
+        </span>
+    </h1>
+
+    <p class="hero-description">
+        PhishGuard analyzes suspicious URLs using a
+        machine-learning security engine designed to
+        identify phishing characteristics before you visit.
+    </p>
+
+
+    <!-- Scanner -->
+    <form
+        class="scanner"
+        action="/analyze"
+        method="POST"
+    >
+
+        <div class="scanner-inner">
+
+            <input
+                class="url-input"
+                type="text"
+                name="url"
+                placeholder="Paste a URL to analyze..."
+                autocomplete="off"
+                required
+            >
+
+            <button
+                class="scan-button"
+                type="submit"
+            >
+                Scan URL →
+            </button>
+
+        </div>
+
+    </form>
+
+
+    <!-- Trust indicators -->
+    <div class="trust">
+
+        <div class="trust-item">
+            <span class="check">✓</span>
+            Machine-learning analysis
+        </div>
+
+        <div class="trust-item">
+            <span class="check">✓</span>
+            18 URL security features
+        </div>
+
+        <div class="trust-item">
+            <span class="check">✓</span>
+            Instant results
+        </div>
+
+    </div>
+
+</section>
+
+
+<!-- Features -->
+<section class="features">
+
+    <div class="feature-card">
+
+        <div class="feature-icon">
+            🧠
+        </div>
+
+        <h3>
+            Intelligent Detection
+        </h3>
+
+        <p>
+            A Random Forest machine-learning model
+            evaluates multiple URL characteristics
+            to identify suspicious patterns.
+        </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+        <div class="feature-icon">
+            🔍
+        </div>
+
+        <h3>
+            Deep URL Analysis
+        </h3>
+
+        <p>
+            Analyze URL structure, domains, subdomains,
+            obfuscation, special characters and
+            HTTPS usage.
+        </p>
+
+    </div>
+
+
+    <div class="feature-card">
+
+        <div class="feature-icon">
+            ⚡
+        </div>
+
+        <h3>
+            Instant Assessment
+        </h3>
+
+        <p>
+            Get a clear security classification and
+            confidence score in seconds, without
+            visiting the destination.
+        </p>
+
+    </div>
+
+</section>
+
+
+<footer>
+    PhishGuard • ML-powered URL security analysis
+</footer>
+
+
+</body>
+</html>
